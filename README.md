@@ -1,4 +1,4 @@
-# DiscordReplika
+# Discord Replika
 version 0.1
 
 this is not a discord bot, uses chromedriver to send and recive all data. (i plan to make a verson compatible with bots in a later update)
