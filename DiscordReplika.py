@@ -1,24 +1,21 @@
-
-#LemonsAreLimes 2022
-
 from lib2to3.pgen2 import driver                    #not sure what this does
 from selenium import webdriver                      #chrome webdriver
 from selenium.webdriver.common.keys import Keys     #sending enter
 import time                                         #excusivly for waiting
-
+import random                                       #used for veritey in typing speed
 
 PATH = 'C:\Program Files (x86)\chromedriver.exe'
 
                 #boot up discord
 Discord = webdriver.Chrome(PATH)
-Discord.get("https://discord.com/channels")		#dms work best, but require manual freind request acceptince
+Discord.get("https://discord.com/channels/")
 print("booted up!")
 time.sleep(5)
                 #login discord
 usrnme = Discord.find_element_by_name("email")
-usrnme.send_keys()          				#discord email
+usrnme.send_keys('')           				#discord email
 paswrd = Discord.find_element_by_name("password")
-paswrd.send_keys()                         		#discord password
+paswrd.send_keys('')                         		#discord password
 usrnme.send_keys(Keys.RETURN)
 paswrd.send_keys(Keys.RETURN)
 print("DISCORD logged in!")
@@ -32,83 +29,95 @@ print("booted up!")
 time.sleep(5)
             #login replika
 usrnme = Replika.find_element_by_id("emailOrPhone")          
-usrnme.send_keys()            				#replika email
+usrnme.send_keys('')          					  #replika email
 usrnme.send_keys(Keys.RETURN)
 time.sleep(2)
 paswrd = Replika.find_element_by_id("login-password")
-paswrd.send_keys()                         		#replika password
+paswrd.send_keys('')			                          #replika password
 paswrd.send_keys(Keys.RETURN)
 print("REPLIKA logged in!")
 
 
-
 def DiscWait():
-    old = Discord.find_element_by_tag_name("ol").text.split("\n")       #get old data, convert to list
-    time.sleep(60)                                                      #wait 60
-    new = Discord.find_element_by_tag_name("ol").text.split("\n")       #get newdata, convert to list
-    if len(old) != len(new):                                            #compare old, new
-        words = ['NEW', 'PM', 'AM', 'DiscordTargetUserName']
+    while True:                                                             #detect when the user is typing
+        try:
+            Discord.find_element_by_class_name('text-3S7XCz')
+            break
+        except:
+            print('not typing')
+        finally:
+            time.sleep(1)
+
+    print('TYPING DETECTED')
+    old = Discord.find_element_by_tag_name("ol").text.split("\n")           #get old data, convert to list
+    name = Discord.find_element_by_class_name('text-3S7XCz').find_element_by_tag_name('strong').text
+    print(name)
+
+    while True:                                                             #detect when the user not typing
+        try:
+            Discord.find_element_by_class_name('text-3S7XCz')
+            print('typing...')
+        except:
+            print('not typing after typing')
+            break
+        finally:
+            time.sleep(1)
+
+    print('DONE TYPING')
+    new = Discord.find_element_by_tag_name("ol").text.split("\n")           #get old data, convert to list
+
+    if len(old) != len(new):                                                #compare old, new
         msg = []
         res = []
 
-        for i in range(len(new)):                                       #convert to string list
+        for i in range(len(new)):                                           #convert to string list
             msg.append(new[i])
             res.append(new[i])
-
-
-        for x in range(len(old)):                                       #extrapolate differance
+        for x in range(len(old)):                                           #extrapolate differance
             msg.remove(old[x])
             res.remove(old[x])
 
-
         print("MESSAGE: ", msg)
 
-        y=0
-        while y < len(msg):                 #check all words           #remove unwanted data
-            print(y)
-            x=0
-            while x < len(words):           #compare against words
-                try:
-                    if words[x] in msg[y]:
-                        print("removed: ", words[x], "from: ", msg[y])
-                        res.remove(msg[y])
-                        break
-                    else:
-                        print("not found: ", words[x], "in: ", msg[y])
-                except IndexError:
-                    print("INDEX ERROR!")
-                finally:
-                    x+=1
-            y+=1
-        print(len(res))
-        return res
+        diff = DiscFilter(msg, res, name)                                   #remove unwanted data
+        return diff
     else:
-        return False    
+        return False
 
 
-def DiscSend(res):
-    print("Replika msg len: ", len(res))
-    if len(res) > 1:                #support for multiple messages
-        for i in range(len(res)):
-            disc = Discord.find_element_by_class_name("markup-eYLPri.slateTextArea-27tjG0.fontSize16Padding-XoMpjI")
-            disc.send_keys(res[i])
-            disc.send_keys(Keys.RETURN)
-    else:
-        disc = Discord.find_element_by_class_name("markup-eYLPri.slateTextArea-27tjG0.fontSize16Padding-XoMpjI")
-        disc.send_keys(res)
-        disc.send_keys(Keys.RETURN)
+def DiscFilter(msg, res, name):                                             #remove unwanted data
+    words = ['NEW', 'PM', 'AM', name]
+    y=0
 
-
+    while y < len(msg):                 #check all words
+        print(y)
+        x=0
+        while x < len(words):           #compare against words
+            try:
+                if words[x] in msg[y]:
+                    print("removed: ", words[x], "from: ", msg[y])
+                    res.remove(msg[y])
+                    break
+                else:
+                    print("not found: ", words[x], "in: ", msg[y])
+            except IndexError:
+                print("INDEX ERROR!")
+            finally:
+                x+=1
+        y+=1
+    print(len(res))
+    return res
+    
 
 
 def RepWait():
     old = Replika.find_elements_by_class_name("MessageGroup__MessageGroupRoot-h4dfhv-0.xoUuE")
-    time.sleep(15)
+    time.sleep(10)
     new = Replika.find_elements_by_class_name("MessageGroup__MessageGroupRoot-h4dfhv-0.xoUuE")
     
     if len(old) != len(new):                                            #compare old, new
         resWebList = new
-        words = ['ReplikaName', 'PM', 'AM', 'thumb up', 'thumb down', 'show more actions']
+        words = ['nyjii', 'PM', 'AM', 'thumb up', 'thumb down', 'show more actions']
         msgs = []
         resA = []
 
@@ -138,7 +147,7 @@ def RepWait():
                     else:
                         print('REP not found: ', words[x], 'in: ', msg[y])
                 except IndexError:
-                    print("INDEX ERROR!")
+                    print("INDEXERROR!")
                 finally:
                     x+=1
             y+=1
@@ -148,6 +157,23 @@ def RepWait():
         return res                                                      #return response
     else:
         return False
+
+
+
+
+
+def DiscSend(res):
+    print("Replika msg len: ", len(res))
+    disc = Discord.find_element_by_class_name("markup-eYLPri.slateTextArea-27tjG0.fontSize16Padding-XoMpjI")
+    for i in range(len(res)):
+
+        disc.send_keys('typing')
+        for x in range(6):  #used for typing animation
+            disc.send_keys(Keys.BACKSPACE)
+            time.sleep(random.randint(1,10))
+
+        disc.send_keys(res[i])
+        disc.send_keys(Keys.RETURN)
 
 
 def RepSend(msg):
